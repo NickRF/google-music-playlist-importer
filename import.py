@@ -1,33 +1,82 @@
 #!/usr/bin/env python
 
-import csv
 from ConfigParser import ConfigParser
 from gmusicapi import Mobileclient
+import sys
 
-config = ConfigParser()
-config.read("config.ini")
+#from gmusicapi.utils import utils
+#print utils.log_filepath
 
-username = config.get("login", "username")
-password = config.get("login", "password")
+def get_csv(filename):
+    import csv
 
-gmusic = Mobileclient()
-logged_in = gmusic.login(username, password)
+    data = []
+    with open('playlist.csv', 'rU') as csv_file:
+        reader = csv.reader(csv_file, delimiter=',', quotechar='"')
+        for row in reader:
+            (title, artist, album) = row
+            data.append((artist, title))
+    return ('CSV Playlist', data)
 
-assert logged_in, "Can't login"
+def get_spotify(url):
+    from lxml import html
+    import requests
 
-with open('playlist.csv', 'rU') as csv_file:
-    reader = csv.reader(csv_file, delimiter=',', quotechar='"')
+    page = requests.get(url)
+    tree = html.fromstring(page.content)
+
+    name = tree.xpath('//h1/span//text()')[0]
+    tracks = tree.xpath('//span[@class="track-name"]/text()')
+    artists = tree.xpath('//span[@class="artists-albums"]/a[contains(@href,"/artist/")][1]/span/text()')
+
+    assert len(tracks) == len(artists)
+
+    return (name, zip(artists, tracks))
+
+def data_to_song_ids(data):
     song_ids = []
-    for row in reader:
-        (title, artist, album) = row
-        # print '%s - %s' % (artist, title)
-        r = gmusic.search_all_access("%s %s" %(artist,title), max_results=1)['song_hits']
-        if r:
-            song_ids.append(r[0]['track']['nid'])
-            # print '%s - %s' % (track['artist'],track['title'])
-        else:
-            print "Not found: %s - %s" % (artist, title)
+    for row in data:
+        artist, title = row
 
-playlist_id = gmusic.create_playlist('Imported Playlist')
-gmusic.add_songs_to_playlist(playlist_id, song_ids)
+        r = gmusic.search("%s %s" %(artist,title), max_results=1)['song_hits']
+        if r:
+            song_ids.append(r[0]['track']['storeId'])
+        else:
+            print("Not found: %s - %s" % (artist, title))
+
+    return song_ids
+
+playlist = sys.argv[1]
+print_data = True
+dry_run = False
+
+if "://open.spotify.com" in playlist:
+    name, data = get_spotify(playlist)
+else:
+    name, data = get_csv(playlist)
+
+if print_data:
+    print(name)
+    print("=" * len(name))
+    for row in data:
+        artist, title = row
+        print('%s - %s' % (artist, title))
+
+if data and not dry_run:
+    config = ConfigParser()
+    config.read("config.ini")
+    token = config.get("login", "oauth_token")
+
+    gmusic = Mobileclient()
+    logged_in = gmusic.oauth_login(token)
+
+    assert logged_in, "Can't login"
+
+    song_ids = data_to_song_ids(data)
+    print("Found %d/%d tracks on Google Music" % (len(song_ids), len(data)))
+    if song_ids:
+        playlist_id = gmusic.create_playlist(name)
+        print(gmusic.add_songs_to_playlist(playlist_id, song_ids))
+        print(playlist_id)
+        print(song_ids)
 

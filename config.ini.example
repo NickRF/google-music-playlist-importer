@@ -1,4 +1,2 @@
 [login]
-username = myusername@gmail.com
-password = mypassword
-
+oath_token = ...
