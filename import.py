@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-from ConfigParser import ConfigParser
 from gmusicapi import Mobileclient
 import sys
 
@@ -47,7 +46,7 @@ def data_to_song_ids(data):
     return song_ids
 
 playlist = sys.argv[1]
-print_data = True
+print_data = False
 dry_run = False
 
 if "://open.spotify.com" in playlist:
@@ -63,20 +62,22 @@ if print_data:
         print('%s - %s' % (artist, title))
 
 if data and not dry_run:
-    config = ConfigParser()
-    config.read("config.ini")
-    token = config.get("login", "oauth_token")
-
     gmusic = Mobileclient()
-    logged_in = gmusic.oauth_login(token)
-
-    assert logged_in, "Can't login"
+    logged_in = gmusic.oauth_login(Mobileclient.FROM_MAC_ADDRESS)
+    if not logged_in:
+        print("Couldn't log in. Starting authentication...")
+        gmusic.perform_oauth()
+        logged_in = gmusic.oauth_login(Mobileclient.FROM_MAC_ADDRESS)
+        if logged_in:
+            print("Logged in!")
+        else:
+            print("Login failed.")
+            sys.exit(1)
 
     song_ids = data_to_song_ids(data)
-    print("Found %d/%d tracks on Google Music" % (len(song_ids), len(data)))
+    print("Found %d/%d tracks on Google Music." % (len(song_ids), len(data)))
     if song_ids:
         playlist_id = gmusic.create_playlist(name)
-        print(gmusic.add_songs_to_playlist(playlist_id, song_ids))
-        print(playlist_id)
-        print(song_ids)
+        gmusic.add_songs_to_playlist(playlist_id, song_ids)
+        print("Created playlist \"%s\"." % name)
 
