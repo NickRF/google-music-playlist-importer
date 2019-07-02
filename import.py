@@ -2,6 +2,7 @@
 
 from gmusicapi import Mobileclient
 import sys
+import argparse
 
 
 def get_csv(filename):
@@ -79,9 +80,13 @@ def data_to_song_ids(data):
 
 
 if __name__ == "__main__":
-    playlist = sys.argv[1]
-    print_data = False
-    dry_run = False
+    parser = argparse.ArgumentParser(description='Import a Spotify or CSV playlist in to Google Music.')
+    parser.add_argument('--dry-run', default=False, action='store_true', help="parse the input, but don't create a Google Music playlist")
+    parser.add_argument('--print-input', default=False, action='store_true', help="print the input playlist data")
+    parser.add_argument('playlist', help='CSV file path or Spotify playlist URL')
+    args = parser.parse_args()
+    playlist = args.playlist
+    dry_run = args.dry_run
 
     if "://open.spotify.com" in playlist:
         name, data = get_spotify(playlist)
@@ -90,7 +95,7 @@ if __name__ == "__main__":
 
     assert data
 
-    if print_data:
+    if args.print_input:
         print(name)
         print("=" * len(name))
         for row in data:
