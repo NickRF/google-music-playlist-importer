@@ -81,6 +81,7 @@ def data_to_song_ids(data):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Import a Spotify or CSV playlist in to Google Music.')
+    parser.add_argument('--name', help='specify playlist name')
     parser.add_argument('--dry-run', default=False, action='store_true', help="parse the input, but don't create a Google Music playlist")
     parser.add_argument('--print-input', default=False, action='store_true', help="print the input playlist data")
     parser.add_argument('playlist', help='CSV file path or Spotify playlist URL')
@@ -94,6 +95,9 @@ if __name__ == "__main__":
         name, data = get_csv(playlist)
 
     assert data
+
+    if args.name:
+        name = args.name
 
     if args.print_input:
         print(name)
