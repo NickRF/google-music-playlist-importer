@@ -24,5 +24,4 @@ def export_song_data(filename, data):
     with open(filename, 'w') as csv_file:
         writer = csv.writer(csv_file, delimiter=',', quotechar='"')
         for track in data:
-            print(track)
             writer.writerow(track)

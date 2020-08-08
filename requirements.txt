@@ -1,3 +1,5 @@
-requests==2.22.0
-lxml==4.3.4
-gmusicapi==12.1.0
+requests
+wheel # needed for lxml
+lxml
+gmusicapi
+ytmusicapi

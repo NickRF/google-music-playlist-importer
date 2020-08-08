@@ -46,5 +46,6 @@ if __name__ == "__main__":
         if not args.dry_run:
             ie.csv_ie.export_song_data(args.csv_filename, data)
     else:
-        #TODO: ytmusic
+        import ie.ytmusic_export
+        ie.ytmusic_export.export_song_data(name, data, args.dry_run)
         pass

@@ -1,21 +1,36 @@
 Google Music Playlist Importer
 ==============================
 
-Simple tool to import Spotify or CSV playlists in to your Google Music account.
+Simple tool to convert playlist formats.
+
+Imports:
+* Spotify
+* CSV
+
+Exports:
+* Google Play Music
+* YouTube Music
+* CSV
 
 Spotify playlists are currently scraped from the HTML page for simplicity.
 
-Tracks are matched to Google Music's catalog using a simple search of Artist + Title.
+Tracks are matched to Google's music catalog using a simple artist/title search.
 
 How to use
 ==========
 
-To use, run:
+Initial authentication setup is handled by [gmusicapi](https://github.com/simon-weber/gmusicapi) / [ytmusicapi](https://github.com/sigma67/ytmusicapi).
 
-`./import.py filename.csv`
+Examples
+========
 
-or
+Import CSV to YouTube Music
+```
+./import.py filename.csv
+```
 
-`./import.py 'https://open.spotify.com/...'`
+Import Spotify to CSV
 
-When running for the first time, you will be directed to Google to obtain an authentication token. This will be stored for future runs.
+```
+./import.py --csv playlist.csv 'https://open.spotify.com/album/0qW47WLD1WTMojO8AJXxH8'
+```
